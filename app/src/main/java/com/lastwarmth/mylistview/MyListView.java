@@ -7,9 +7,6 @@ import android.view.VelocityTracker;
 import android.view.View;
 import android.widget.ListView;
 
-/**
- * Created by Administrator on 2015/11/13.
- */
 public class MyListView extends ListView {
 
     private VelocityTracker mVelocityTracker;
@@ -19,11 +16,9 @@ public class MyListView extends ListView {
     private int MAX_X = 3;
     private int mTouchPosition;
     private MyItemLayout mTouchView;
-    private boolean isHorizontal = false;
     private static final int TOUCH_STATE_NONE = 0;
     private static final int TOUCH_STATE_X = 1;
     private static final int TOUCH_STATE_Y = 2;
-
     private int mTouchState;
 
     public MyListView(Context context, AttributeSet attrs) {
@@ -50,9 +45,6 @@ public class MyListView extends ListView {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (ev.getAction() != MotionEvent.ACTION_DOWN && mTouchView == null) {
-            return super.onTouchEvent(ev);
-        }
         createVelocityTracker(ev);
         float moveX;
         float moveY;
@@ -98,20 +90,17 @@ public class MyListView extends ListView {
                     if (mTouchView.isMenuOpen()) {
                         mTouchView.smoothCloseMenu();
                         mTouchView = null;
-                        recycleVelocityTracker();
-                        return true;
-                    }
-                    if (-moveX > mTouchView.getMenuWidth() / 2 || (moveX < 0 && getScrollVelocity() > 200)) {
-                        mTouchView.smoothOpenMenu();
                     } else {
-                        mTouchView.smoothCloseMenu();
-                        mTouchView = null;
+                        if (-moveX > mTouchView.getMenuWidth() / 2 || (moveX < 0 && getScrollVelocity() > 200)) {
+                            mTouchView.smoothOpenMenu();
+                        } else {
+                            mTouchView.smoothCloseMenu();
+                            mTouchView = null;
+                        }
                     }
                     recycleVelocityTracker();
                     return true;
                 }
-                recycleVelocityTracker();
-                break;
         }
         return super.onTouchEvent(ev);
     }
