@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.widget.LinearLayout;
+import android.widget.Scroller;
 
 public class MyItemLayout extends LinearLayout {
 
@@ -14,10 +15,32 @@ public class MyItemLayout extends LinearLayout {
     private boolean isMenuOpen;
     private int minLeftMargin = -720;
     private int maxLeftMargin = 0;
+    private Scroller mScroller = null;
 
     public MyItemLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
         contentLayout = new LayoutParams(getScreenWidth(), LayoutParams.WRAP_CONTENT);
+        mScroller = new Scroller(context);
+    }
+
+    @Override
+    public void computeScroll() {
+        if (mScroller.computeScrollOffset()) {
+            setLeftMargin(mScroller.getCurrX());
+            postInvalidate();
+        }
+    }
+
+    public void smoothOpenMenu() {
+        isMenuOpen = true;
+        mScroller.startScroll(contentLayout.leftMargin, 0, -720 - contentLayout.leftMargin, 0, 350);
+        postInvalidate();
+    }
+
+    public void smoothCloseMenu() {
+        isMenuOpen = false;
+        mScroller.startScroll(contentLayout.leftMargin, 0, -contentLayout.leftMargin, 0, 350);
+        postInvalidate();
     }
 
     @Override
@@ -72,15 +95,21 @@ public class MyItemLayout extends LinearLayout {
     }
 
     public void setLeftMargin(int leftMargin) {
+        if (leftMargin > maxLeftMargin) {
+            leftMargin = maxLeftMargin;
+        }
+        if (leftMargin < minLeftMargin) {
+            leftMargin = minLeftMargin;
+        }
         contentLayout.leftMargin = leftMargin;
         contentView.setLayoutParams(contentLayout);
     }
 
-    public void smoothOpenMenu() {
+    public void toOpenMenu() {
         new ScrollTask().execute(30);
     }
 
-    public void smoothCloseMenu() {
+    public void toCloseMenu() {
         new ScrollTask().execute(-30);
     }
 

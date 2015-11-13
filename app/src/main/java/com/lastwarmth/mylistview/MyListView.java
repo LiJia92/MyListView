@@ -74,7 +74,9 @@ public class MyListView extends ListView {
                 moveX = ev.getX() - xDown;
                 moveY = ev.getY() - yDown;
                 if (mTouchState == TOUCH_STATE_X) {
-                    mTouchView.setLeftMargin((int) moveX);
+                    if (!mTouchView.isMenuOpen()) {
+                        mTouchView.setLeftMargin((int) moveX);
+                    }
                     return true;
                 } else if (mTouchState == TOUCH_STATE_NONE) {
                     if (Math.abs(moveY) > MAX_Y) {
@@ -86,21 +88,19 @@ public class MyListView extends ListView {
                 break;
             case MotionEvent.ACTION_UP:
                 moveX = ev.getX() - xDown;
-                if (mTouchState == TOUCH_STATE_X) {
-                    if (mTouchView.isMenuOpen()) {
+                if (mTouchState == TOUCH_STATE_X && mTouchView != null) {
+                    if (-moveX > mTouchView.getMenuWidth() / 2 || (moveX < 0 && getScrollVelocity() > 200)) {
+                        if (!mTouchView.isMenuOpen()) {
+                            mTouchView.smoothOpenMenu();
+                        }
+                    } else {
                         mTouchView.smoothCloseMenu();
                         mTouchView = null;
-                    } else {
-                        if (-moveX > mTouchView.getMenuWidth() / 2 || (moveX < 0 && getScrollVelocity() > 200)) {
-                            mTouchView.smoothOpenMenu();
-                        } else {
-                            mTouchView.smoothCloseMenu();
-                            mTouchView = null;
-                        }
                     }
                     recycleVelocityTracker();
                     return true;
                 }
+                break;
         }
         return super.onTouchEvent(ev);
     }
