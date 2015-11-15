@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Scroller;
 
@@ -13,7 +14,7 @@ public class MyItemLayout extends LinearLayout {
     private LinearLayout menuView;
     private LayoutParams contentLayout;
     private boolean isMenuOpen;
-    private int minLeftMargin = -720;
+    private int minLeftMargin;
     private int maxLeftMargin = 0;
     private Scroller mScroller = null;
 
@@ -33,13 +34,13 @@ public class MyItemLayout extends LinearLayout {
 
     public void smoothOpenMenu() {
         isMenuOpen = true;
-        mScroller.startScroll(contentLayout.leftMargin, 0, -720 - contentLayout.leftMargin, 0, 350);
+        mScroller.startScroll(contentLayout.leftMargin, 0, minLeftMargin - contentLayout.leftMargin, 0, 350);
         postInvalidate();
     }
 
     public void smoothCloseMenu() {
         isMenuOpen = false;
-        mScroller.startScroll(contentLayout.leftMargin, 0, -contentLayout.leftMargin, 0, 350);
+        mScroller.startScroll(contentLayout.leftMargin, 0, maxLeftMargin - contentLayout.leftMargin, 0, 350);
         postInvalidate();
     }
 
@@ -48,6 +49,8 @@ public class MyItemLayout extends LinearLayout {
         super.onFinishInflate();
         contentView = (LinearLayout) getChildAt(0);
         menuView = (LinearLayout) getChildAt(1);
+        ViewGroup.LayoutParams lp = menuView.getLayoutParams();
+        minLeftMargin = -lp.width;
     }
 
     private int getScreenWidth() {
