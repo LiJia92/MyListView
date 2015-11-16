@@ -2,6 +2,7 @@ package com.lastwarmth.mylistview;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
@@ -22,7 +23,7 @@ public class MyListView extends ListView {
     // 当前点击的item View
     private MyItemLayout mTouchView;
     // 当前触摸状态
-    private int mTouchState;
+    private int mTouchState = TOUCH_STATE_NONE;
     private static final int TOUCH_STATE_NONE = 0; //ACTION_DOWN时设置的状态
     private static final int TOUCH_STATE_X = 1; //横滑
     private static final int TOUCH_STATE_Y = 2; //竖滑
@@ -30,6 +31,8 @@ public class MyListView extends ListView {
 
     public MyListView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        MAX_X = dp2px(MAX_X);
+        MAX_Y = dp2px(MAX_Y);
     }
 
     /**
@@ -63,6 +66,11 @@ public class MyListView extends ListView {
         mVelocityTracker = null;
     }
 
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return super.onInterceptTouchEvent(ev);
+    }
+
     /**
      * 触摸事件的控制
      *
@@ -71,6 +79,9 @@ public class MyListView extends ListView {
      */
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+        if (ev.getAction() != MotionEvent.ACTION_DOWN && mTouchView == null) {
+            return super.onTouchEvent(ev);
+        }
         // 加入触摸跟踪类
         createVelocityTracker(ev);
         float moveX;
@@ -78,36 +89,38 @@ public class MyListView extends ListView {
         int action = ev.getAction();
         switch (action) {
             case MotionEvent.ACTION_DOWN:
+                int prevPosition = mTouchPosition;
                 xDown = ev.getX();
                 yDown = ev.getY();
                 mTouchState = TOUCH_STATE_NONE;
-                int prevPosition = mTouchPosition;
                 mTouchPosition = pointToPosition((int) xDown, (int) yDown);
                 // 当前点击的Item正好是已经显示Menu的Item
                 if (prevPosition == mTouchPosition && mTouchView != null && mTouchView.isMenuOpen()) {
                     mTouchState = TOUCH_STATE_X;
                     return true; // 返回true表示接受了ACTION_DOWN，那么后面的事件依然会分发给MyListView
                 }
+                View view = getChildAt(mTouchPosition - getFirstVisiblePosition());
                 // 点击的Item不是正在显示Menu的Item，则直接关闭Menu
                 if (mTouchView != null && mTouchView.isMenuOpen()) {
                     mTouchView.smoothCloseMenu();
                     mTouchView = null;
                     return false; // 返回false，那么后面的事件全部会接收不到
                 }
-                View view = getChildAt(mTouchPosition - getFirstVisiblePosition());
                 if (view instanceof MyItemLayout) {
                     mTouchView = (MyItemLayout) view;
                 }
-                return true;
+                break;
             case MotionEvent.ACTION_MOVE:
                 moveX = ev.getX() - xDown;
                 moveY = ev.getY() - yDown;
                 if (mTouchState == TOUCH_STATE_X) {
+                    // 如果是横滑，则设置leftMargin
                     if (!mTouchView.isMenuOpen()) {
-                        // 如果是横滑，并且菜单没有显示，则设置leftMargin
                         mTouchView.setLeftMargin((int) moveX);
+                    } else {
+                        mTouchView.setLeftMargin((int) (moveX - mTouchView.getMenuWidth()));
                     }
-                    return false;
+                    return true;
                 } else if (mTouchState == TOUCH_STATE_NONE) {
                     // 设置横滑还是竖滑
                     if (Math.abs(moveY) > MAX_Y) {
@@ -119,7 +132,7 @@ public class MyListView extends ListView {
                 break;
             case MotionEvent.ACTION_UP:
                 moveX = ev.getX() - xDown;
-                if (mTouchState == TOUCH_STATE_X && mTouchView != null) {
+                if (mTouchState == TOUCH_STATE_X) {
                     // 若滑动的距离是Menu宽度的一半，或者左滑速度大于200,
                     if (-moveX > mTouchView.getMenuWidth() / 2 || (moveX < 0 && getScrollVelocity() > 200)) {
                         // 若Menu是关闭的
@@ -131,6 +144,7 @@ public class MyListView extends ListView {
                         // 滑动关闭Menu
                         mTouchView.smoothCloseMenu();
                         mTouchView = null;
+                        mTouchPosition = -1;
                     }
                     recycleVelocityTracker();
                     return true;
@@ -138,5 +152,10 @@ public class MyListView extends ListView {
                 break;
         }
         return super.onTouchEvent(ev);
+    }
+
+    private int dp2px(int dp) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
+                getContext().getResources().getDisplayMetrics());
     }
 }
