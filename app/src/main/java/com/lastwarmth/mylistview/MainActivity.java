@@ -1,17 +1,23 @@
 package com.lastwarmth.mylistview;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +31,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            setTranslucentStatus(true);
+        }
+
+        SystemBarTintManager tintManager = new SystemBarTintManager(this);
+        tintManager.setStatusBarTintEnabled(true);
+        tintManager.setStatusBarTintResource(R.color.colorPrimaryDark);//通知栏所需颜色
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mContext = this;
@@ -46,7 +61,22 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(mContext, ((MyModel) myAdapter.getItem(position)).getGroupName(), Toast.LENGTH_SHORT).show();
             }
         });
+
     }
+
+    @TargetApi(19)
+    private void setTranslucentStatus(boolean on) {
+        Window win = getWindow();
+        WindowManager.LayoutParams winParams = win.getAttributes();
+        final int bits = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+        if (on) {
+            winParams.flags |= bits;
+        } else {
+            winParams.flags &= ~bits;
+        }
+        win.setAttributes(winParams);
+    }
+
 
     private void initData() {
         MyModel model1 = new MyModel("http://img.my.csdn.net/uploads/201508/05/1438760758_3497.jpg", "天龙八部", "人生万象，尽归于尘。");

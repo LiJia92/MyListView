@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.lastwarmth.mylistview"
-        minSdkVersion 14
+        minSdkVersion 19
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -26,4 +26,5 @@ dependencies {
     compile 'com.android.support:design:23.0.0'
     compile 'de.hdodenhof:circleimageview:2.0.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
+    compile 'com.readystatesoftware.systembartint:systembartint:1.0.3'
 }
